@@ -1,8 +1,17 @@
-# Habit Tracker
+# 🎯 HabitTracker
 
-A modern, dark-themed habit tracking web application built with Flask, SQLite, and Tailwind CSS. Track your daily habits with a beautiful and intuitive interface.
+> **A modern, dark-themed habit tracking web application built with Flask, SQLite, and Tailwind CSS.**
 
-![Habit Tracker Screenshot](https://via.placeholder.com/800x400/1e293b/10b981?text=Habit+Tracker+Screenshot)
+Track your daily habits with a beautiful and intuitive interface that helps you build consistency and achieve your goals.
+
+![Habit Tracker](https://img.shields.io/badge/Status-Active-brightgreen)
+![Python](https://img.shields.io/badge/Python-3.8+-blue)
+![Flask](https://img.shields.io/badge/Flask-2.0+-red)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+
+## ✨ Preview
+
+*Beautiful dark theme with modern glass-morphism design*
 
 ## Features
 
@@ -203,17 +212,27 @@ The database is automatically created on first run. To reset:
 - SQL injection prevention via SQLAlchemy
 - XSS protection through proper templating
 
-## Contributing
+## 👨‍💻 Developer
+
+**Main Developer**: Darklord  
+**Contact**: [@f1sherFM](https://t.me/f1sherFM) (Telegram)
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+4. Commit your changes (`git commit -m 'Add some amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
 
-## License
+## 📄 License
 
 This project is open source and available under the MIT License.
+
+## ⭐ Show your support
+
+Give a ⭐️ if this project helped you!
 
 ## Troubleshooting
 

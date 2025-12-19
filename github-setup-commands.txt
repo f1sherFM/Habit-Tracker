@@ -1,0 +1,16 @@
+# Команды для подключения к GitHub
+# Замени YOUR_USERNAME на свой GitHub username
+
+# 1. Добавь remote origin (замени YOUR_USERNAME на свой username)
+git remote add origin https://github.com/YOUR_USERNAME/habit-tracker.git
+
+# 2. Переименуй ветку в main (современный стандарт)
+git branch -M main
+
+# 3. Загрузи код на GitHub
+git push -u origin main
+
+# Пример с конкретным username:
+# git remote add origin https://github.com/darklord123/habit-tracker.git
+# git branch -M main  
+# git push -u origin main
