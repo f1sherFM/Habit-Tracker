@@ -14,7 +14,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from authlib.integrations.flask_client import OAuth
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 
 # Initialize Flask app
@@ -89,7 +89,7 @@ class Habit(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationship to habit logs
     logs = db.relationship('HabitLog', backref='habit', lazy=True, cascade='all, delete-orphan')
@@ -102,7 +102,7 @@ class Habit(db.Model):
         Get the completion status for the last 7 days
         Returns a list of dictionaries with date and completion status
         """
-        today = datetime.utcnow().date()
+        today = datetime.now(timezone.utc).date()
         last_7_days = []
         
         for i in range(6, -1, -1):
@@ -160,7 +160,7 @@ class User(UserMixin, db.Model):
     github_id = db.Column(db.String(50), unique=True)
     name = db.Column(db.String(100))
     avatar_url = db.Column(db.String(200))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationship to habits
     habits = db.relationship('Habit', backref='user', lazy=True, cascade='all, delete-orphan')
@@ -213,7 +213,7 @@ class User(UserMixin, db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 
 # ==================== ROUTES ====================
@@ -343,18 +343,32 @@ def login():
         return redirect(url_for('dashboard'))
     
     if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
         remember = request.form.get('remember')
         
-        user = User.query.filter_by(email=email).first()
-        if user and user.check_password(password):
-            login_user(user, remember=remember)
-            flash('Logged in successfully!', 'success')
-            next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('dashboard'))
-        else:
-            flash('Invalid email or password.', 'error')
+        # Validation
+        if not email:
+            flash('Email is required.', 'error')
+            return render_template('login.html')
+        
+        if not password:
+            flash('Password is required.', 'error')
+            return render_template('login.html')
+        
+        try:
+            user = User.query.filter_by(email=email).first()
+            if user and user.check_password(password):
+                login_user(user, remember=remember)
+                flash('Welcome back! Logged in successfully.', 'success')
+                next_page = request.args.get('next')
+                return redirect(next_page) if next_page else redirect(url_for('dashboard'))
+            else:
+                flash('Invalid email or password. Please check your credentials and try again.', 'error')
+                return render_template('login.html')
+        except Exception as e:
+            flash('An error occurred during login. Please try again.', 'error')
+            return render_template('login.html')
     
     return render_template('login.html')
 
@@ -368,27 +382,52 @@ def register():
         return redirect(url_for('dashboard'))
     
     if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
+        confirm_password = request.form.get('confirm_password', '')
+        
+        # Validation
+        if not email:
+            flash('Email is required.', 'error')
+            return render_template('register.html')
+        
+        if not password:
+            flash('Password is required.', 'error')
+            return render_template('register.html')
+        
+        if len(password) < 6:
+            flash('Password must be at least 6 characters long.', 'error')
+            return render_template('register.html')
         
         if password != confirm_password:
             flash('Passwords do not match.', 'error')
-            return redirect(url_for('register'))
+            return render_template('register.html')
+        
+        # Check if email is valid format
+        import re
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, email):
+            flash('Please enter a valid email address.', 'error')
+            return render_template('register.html')
         
         if User.query.filter_by(email=email).first():
-            flash('Email already registered.', 'error')
-            return redirect(url_for('register'))
+            flash('Email already registered. Please use a different email or try logging in.', 'error')
+            return render_template('register.html')
         
-        user = User(email=email)
-        user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
-        
-        # Auto-login after registration
-        login_user(user)
-        flash('Account created successfully! Welcome!', 'success')
-        return redirect(url_for('dashboard'))
+        try:
+            user = User(email=email)
+            user.set_password(password)
+            db.session.add(user)
+            db.session.commit()
+            
+            # Auto-login after registration
+            login_user(user)
+            flash('Account created successfully! Welcome to HabitTracker!', 'success')
+            return redirect(url_for('dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash('An error occurred while creating your account. Please try again.', 'error')
+            return render_template('register.html')
     
     return render_template('register.html')
 
