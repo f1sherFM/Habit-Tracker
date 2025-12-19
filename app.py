@@ -22,7 +22,13 @@ app = Flask(__name__)
 
 # Configuration
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here-change-in-production')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///habits.db'
+
+# Use in-memory database for Vercel (since file system is read-only)
+if os.getenv('VERCEL'):
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///habits.db'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database and login manager
@@ -523,12 +529,15 @@ def create_tables():
         print("Database tables created successfully!")
 
 
-if __name__ == '__main__':
-    # Create tables on first run
+def init_db():
+    """Initialize database tables"""
     if not os.path.exists('instance'):
         os.makedirs('instance')
-    
     create_tables()
-    
-    # Run the Flask app
+
+# Initialize database when module is imported
+init_db()
+
+if __name__ == '__main__':
+    # Run the Flask app locally
     app.run(debug=True, port=5000)
