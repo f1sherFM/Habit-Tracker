@@ -524,19 +524,31 @@ def create_tables():
     """
     Create database tables if they don't exist
     """
-    with app.app_context():
-        db.create_all()
-        print("Database tables created successfully!")
+    try:
+        with app.app_context():
+            db.create_all()
+            print("Database tables created successfully!")
+    except Exception as e:
+        print(f"Database creation warning: {e}")
+        # Continue anyway - this is expected on serverless platforms
 
 
 def init_db():
     """Initialize database tables"""
-    if not os.path.exists('instance'):
-        os.makedirs('instance')
+    # Only create instance directory if not on Vercel (read-only filesystem)
+    if not os.getenv('VERCEL') and not os.path.exists('instance'):
+        try:
+            os.makedirs('instance')
+        except OSError:
+            pass  # Ignore if can't create directory
     create_tables()
 
 # Initialize database when module is imported
-init_db()
+try:
+    init_db()
+except Exception as e:
+    print(f"Database initialization warning: {e}")
+    # Continue anyway - database will be in-memory on Vercel
 
 if __name__ == '__main__':
     # Run the Flask app locally
