@@ -213,7 +213,7 @@ All styles are embedded in HTML templates using Tailwind CSS classes. To customi
 - **Auto-creation**: Database is created automatically on first run
 - **Location**: `instance/habits.db` (SQLite file)
 - **Reset**: Delete the database file and restart the app
-- **Backup**: Copy the `habits.db` file to save your data
+- **Backup**: Copy the `habits.db` file to save your dat
 
 ## 🛣️ API Endpoints
 
