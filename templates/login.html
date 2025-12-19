@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Habit Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+        }
+        
+        .input-field {
+            transition: all 0.3s ease;
+            background: rgba(15, 23, 42, 0.6);
+        }
+        
+        .input-field:focus {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 20%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.15);
+            transform: rotate(30deg);
+            transition: transform 0.8s;
+        }
+        
+        .btn-primary:hover::after {
+            transform: translateX(500px) rotate(30deg);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+        }
+        
+        .floating-element {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            z-index: -1;
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        .floating-element:nth-child(2) {
+            animation-delay: -5s;
+            animation-duration: 25s;
+        }
+        
+        .floating-element:nth-child(3) {
+            animation-delay: -10s;
+            animation-duration: 30s;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(20px, -20px) scale(1.05); }
+            50% { transform: translate(-15px, 15px) scale(0.95); }
+            75% { transform: translate(10px, -10px) scale(1.02); }
+        }
+        
+        .logo {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .social-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .social-btn:hover {
+            transform: translateY(-2px);
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+    </style>
+</head>
+<body class="text-slate-200 flex items-center justify-center min-h-screen p-4 relative">
+    
+    <!-- Floating background elements - более плавная анимация -->
+    <div class="floating-element w-72 h-72 -top-20 -left-20 opacity-20"></div>
+    <div class="floating-element w-64 h-64 -bottom-24 -right-20 opacity-15"></div>
+    <div class="floating-element w-32 h-32 top-1/4 right-1/4 opacity-10"></div>
+    
+    <!-- Основная карточка БЕЗ пульсации -->
+    <div class="w-full max-w-md glass-card rounded-2xl p-8 z-10 transform transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10">
+        <div class="text-center mb-10">
+            <div class="flex justify-center mb-4">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 transform transition-transform hover:scale-110 duration-300">
+                    <i class="fas fa-chart-line text-white text-xl"></i>
+                </div>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+            <p class="text-slate-400 text-sm">Sign in to continue your habit journey</p>
+        </div>
+
+        <form action="/login" method="POST" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium mb-2 text-slate-300">
+                    <i class="fas fa-envelope mr-2 text-indigo-400"></i>Email Address
+                </label>
+                <input type="email" name="email" required 
+                    class="w-full input-field border border-slate-700/50 rounded-xl px-4 py-3.5 text-white focus:outline-none transition-all duration-300"
+                    placeholder="name@example.com">
+            </div>
+
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-sm font-medium text-slate-300">
+                        <i class="fas fa-lock mr-2 text-indigo-400"></i>Password
+                    </label>
+                    <a href="/forgot-password" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors duration-300">Forgot password?</a>
+                </div>
+                <input type="password" name="password" required 
+                    class="w-full input-field border border-slate-700/50 rounded-xl px-4 py-3.5 text-white focus:outline-none transition-all duration-300"
+                    placeholder="Enter your password">
+            </div>
+            
+            <div class="flex items-center">
+                <input type="checkbox" id="remember" name="remember" class="mr-2 rounded border-slate-700 bg-slate-800 text-indigo-600 focus:ring-indigo-500 focus:ring-2 focus:ring-offset-1 focus:ring-offset-slate-900">
+                <label for="remember" class="text-sm text-slate-300 cursor-pointer">Remember me for 30 days</label>
+            </div>
+
+            <button type="submit" 
+                class="w-full btn-primary text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-indigo-500/30 transition-all duration-300 active:scale-[0.98] relative">
+                <span class="relative z-10">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+                </span>
+            </button>
+            
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-slate-700/50"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-3 bg-[#1e293b] text-slate-400">Or continue with</span>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" disabled class="flex items-center justify-center py-3 bg-slate-800/30 border border-slate-700/30 rounded-xl opacity-40 cursor-not-allowed">
+                    <i class="fab fa-google text-red-400/50 mr-2"></i>
+                    <span class="text-sm text-slate-500">Google</span>
+                </button>
+                <button type="button" disabled class="flex items-center justify-center py-3 bg-slate-800/30 border border-slate-700/30 rounded-xl opacity-40 cursor-not-allowed">
+                    <i class="fab fa-github text-slate-400/50 mr-2"></i>
+                    <span class="text-sm text-slate-500">GitHub</span>
+                </button>
+            </div>
+        </form>
+
+        <div class="mt-10 pt-6 border-t border-slate-700/50 text-center">
+            <p class="text-slate-400 text-sm">
+                Don't have an account? 
+                <a href="/register" class="text-indigo-400 hover:text-indigo-300 font-medium transition-colors duration-300">Create one now</a>
+            </p>
+            <p class="text-xs text-slate-500 mt-4">
+                By signing in, you agree to our 
+                <a href="/terms" class="text-indigo-400/80 hover:text-indigo-300 transition-colors duration-300">Terms</a> 
+                and 
+                <a href="/privacy" class="text-indigo-400/80 hover:text-indigo-300 transition-colors duration-300">Privacy Policy</a>
+            </p>
+        </div>
+    </div>
+    
+    <div class="absolute bottom-4 left-0 right-0 text-center">
+        <p class="text-xs text-slate-500">© 2023 HabitTracker Pro. All rights reserved.</p>
+    </div>
+
+    <script>
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input[type="email"], input[type="password"]');
+            inputs.forEach(input => {
+                // Эффект при фокусе
+                input.addEventListener('focus', function() {
+                    this.parentElement.classList.add('opacity-100');
+                });
+                
+                input.addEventListener('blur', function() {
+                    if (this.value === '') {
+                        this.parentElement.classList.remove('opacity-100');
+                    }
+                });
+            });
+            
+            // Анимация отправки формы
+            const form = document.querySelector('form');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            
+            form.addEventListener('submit', function(e) {
+                // Показываем эффект загрузки
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Signing in...';
+                submitBtn.classList.add('opacity-90', 'cursor-not-allowed');
+                submitBtn.disabled = true;
+                
+                // Форма отправится автоматически после этого
+            });
+            
+            // Социальные кнопки отключены
+        });
+    </script>
+</body>
+</html>
