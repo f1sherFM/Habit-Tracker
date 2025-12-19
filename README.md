@@ -9,31 +9,56 @@ Track your daily habits with a beautiful and intuitive interface that helps you 
 ![Flask](https://img.shields.io/badge/Flask-2.0+-red)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-## ✨ Preview
+## ✨ Features
 
-*Beautiful dark theme with modern glass-morphism design*
+### 🎨 **Beautiful Modern Interface**
+- **Dark Theme**: Professional slate/indigo color scheme with glass-morphism effects
+- **Responsive Design**: Perfect experience on mobile, tablet, and desktop
+- **Smooth Animations**: Floating elements and hover effects for engaging UX
+- **Landing Page**: Professional landing page with feature showcase
 
-## Features
+### 📊 **Habit Management**
+- **Easy Habit Creation**: Add habits with name and optional description
+- **7-Day Progress Tracking**: Visual circles showing completion status for the last week
+- **Real-time Updates**: Click any day to toggle completion with smooth animations
+- **Progress Indicators**: Visual progress bars showing completion rates
+- **Habit Deletion**: Remove habits with confirmation
 
-- **Modern Dark UI**: Clean, professional design with slate/zinc color scheme
-- **Responsive Design**: Works perfectly on mobile and desktop
-- **Habit Management**: Add and delete habits with ease
-- **Progress Tracking**: Visual 7-day progress tracking with clickable circles
-- **Real-time Updates**: Toggle completion status with smooth animations
-- **Progress Bars**: Visual progress indicators for each habit
-- **Glass-morphism Design**: Modern frosted glass card effects
-- **User Authentication**: Login/Register with email/password or OAuth (Google/GitHub)
-- **Personalized Experience**: Each user has their own habits
+### 🔐 **User Authentication**
+- **Email/Password Registration**: Secure account creation and login
+- **User Sessions**: Personalized experience with individual habit tracking
+- **Password Security**: Hashed passwords using Werkzeug security
+- **Session Management**: Secure login sessions with Flask-Login
 
-## Technology Stack
+### 📱 **Complete Website Experience**
+- **Landing Page**: Beautiful hero section with feature highlights
+- **About Us**: Company information and values
+- **Our Mission**: Vision and purpose of the platform
+- **Team Page**: Meet the developer (Darklord)
+- **Contact Page**: Direct Telegram contact (@f1sherFM)
+- **Legal Pages**: Privacy Policy and Terms of Service
 
-- **Backend**: Flask (Python web framework)
-- **Database**: SQLite with SQLAlchemy ORM
-- **Authentication**: Flask-Login with OAuth support (Authlib)
-- **Frontend**: HTML5, Tailwind CSS, JavaScript
-- **Icons**: Font Awesome
-- **Frontend**: HTML5, Tailwind CSS, Font Awesome icons
-- **JavaScript**: Vanilla JS for interactivity
+## 🛠️ Technology Stack
+
+### Backend
+- **Flask** - Python web framework for routing and server logic
+- **SQLAlchemy** - ORM for database operations
+- **Flask-Login** - User session management
+- **SQLite** - Lightweight database for data storage
+- **Werkzeug** - Password hashing and security
+
+### Frontend
+- **HTML5** - Semantic markup structure
+- **Tailwind CSS** - Utility-first CSS framework via CDN
+- **JavaScript (Vanilla)** - Interactive functionality and AJAX
+- **Font Awesome** - Beautiful icons and graphics
+- **Google Fonts (Inter)** - Modern typography
+
+### Design
+- **Glass-morphism** - Modern frosted glass card effects
+- **Dark Theme** - Professional slate/indigo color palette
+- **Responsive Layout** - Mobile-first design approach
+- **CSS Animations** - Smooth transitions and hover effects
 
 ## Installation
 
@@ -42,10 +67,11 @@ Track your daily habits with a beautiful and intuitive interface that helps you 
 - Python 3.8 or higher
 - pip (Python package installer)
 
-### Step 1: Clone/Download the Project
+### Step 1: Clone the Project
 
 ```bash
-cd habit-tracker
+git clone https://github.com/f1sherFM/Habit-Tracker.git
+cd Habit-Tracker
 ```
 
 ### Step 2: Create Virtual Environment (Recommended)
@@ -66,35 +92,20 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Step 4: Configure OAuth (Optional)
+### Step 4: Configure Environment (Optional)
 
-To enable Google and GitHub login, you need to set up OAuth applications:
-
-#### Google OAuth Setup:
-1. Go to [Google Developer Console](https://console.developers.google.com/)
-2. Create a new project or select existing one
-3. Enable Google+ API
-4. Go to "Credentials" → "Create Credentials" → "OAuth 2.0 Client IDs"
-5. Set Application type to "Web application"
-6. Add authorized redirect URIs: `http://localhost:5000/auth/google`
-7. Copy Client ID and Client Secret
-
-#### GitHub OAuth Setup:
-1. Go to [GitHub OAuth Apps](https://github.com/settings/applications/new)
-2. Fill in application details
-3. Set Authorization callback URL: `http://localhost:5000/auth/github`
-4. Copy Client ID and Client Secret
-
-#### Configure Environment Variables:
-Create a `.env` file in the project root:
+Create a `.env` file for custom configuration:
 
 ```env
+SECRET_KEY=your_random_secret_key_here
+# OAuth credentials (currently disabled in UI)
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
-SECRET_KEY=your_random_secret_key
 ```
+
+> **Note**: OAuth buttons are currently disabled in the UI. The app works perfectly with email/password authentication.
 
 ### Step 5: Run the Application
 
@@ -109,87 +120,126 @@ Open your web browser and navigate to:
 http://localhost:5000
 ```
 
-## Project Structure
+## 📁 Project Structure
 
 ```
-habit-tracker/
-│   app.py              # Main Flask application
-│   requirements.txt    # Python dependencies
-│   README.md          # This file
+Habit-Tracker/
 │
-├───static/
-│   │   style.css      # Additional CSS (if needed)
-│   │
-│   └───images/
-│           hero-bg.jpg # Background images
+├── app.py                 # Main Flask application with all routes
+├── requirements.txt       # Python dependencies
+├── README.md             # Project documentation
+├── .gitignore           # Git ignore rules
+├── .env                 # Environment variables (create manually)
 │
-└───templates/
-        base.html      # Base template with navigation
-        index.html     # Main dashboard template
+└── templates/           # HTML templates
+    ├── landing.html     # Beautiful landing page
+    ├── login.html       # User login form
+    ├── register.html    # User registration form
+    ├── index.html       # Main habit dashboard
+    ├── about.html       # About us page
+    ├── mission.html     # Our mission page
+    ├── team.html        # Team page (featuring Darklord)
+    ├── contact.html     # Contact page (@f1sherFM)
+    ├── privacy.html     # Privacy policy
+    └── terms.html       # Terms of service
 ```
 
-## Usage
+## 🚀 Usage Guide
 
-### Adding a Habit
-1. Click the "Add Habit" button on the dashboard
-2. Enter a habit name (required)
-3. Optionally add a description
-4. Click "Add Habit" to save
+### Getting Started
+1. **Visit the Landing Page** - Beautiful introduction to HabitTracker
+2. **Create Account** - Register with email and password
+3. **Login** - Access your personal dashboard
+4. **Start Tracking** - Add your first habit and begin your journey
 
-### Tracking Progress
-1. Each habit card shows the last 7 days as clickable circles
-2. Click on any day to toggle completion status
-3. Green circles indicate completed days
-4. Gray circles indicate incomplete days
+### Managing Habits
+- **➕ Add New Habit**: Click "Add Habit" button, enter name and optional description
+- **📊 Track Progress**: Click on any day circle to mark habit as complete/incomplete
+- **📈 View Statistics**: See completion rates and 7-day progress for each habit
+- **🗑️ Delete Habit**: Click trash icon to remove habits you no longer need
 
-### Deleting a Habit
-1. Click the trash icon on any habit card
-2. Confirm the deletion when prompted
+### Visual Indicators
+- **🟢 Green Circles**: Completed days
+- **⚪ Gray Circles**: Incomplete days
+- **📊 Progress Bar**: Shows completion percentage for the week
+- **🎯 Streak Counter**: Track your consistency over time
 
-## Database Schema
+### Navigation
+- **🏠 Dashboard**: Your main habit tracking interface
+- **ℹ️ About**: Learn about HabitTracker's mission and values
+- **👥 Team**: Meet the developer behind the project
+- **📞 Contact**: Get in touch via Telegram (@f1sherFM)
+
+## 🗄️ Database Schema
+
+### Users Table
+- `id`: Primary key (Integer)
+- `email`: User email address (Unique, String 120)
+- `password_hash`: Hashed password (String 128)
+- `name`: User display name (String 100)
+- `created_at`: Account creation timestamp (DateTime)
 
 ### Habits Table
-- `id`: Primary key
-- `name`: Habit name (max 100 characters)
-- `description`: Optional description
-- `created_at`: Timestamp of creation
+- `id`: Primary key (Integer)
+- `user_id`: Foreign key to users table (Integer)
+- `name`: Habit name (String 100, required)
+- `description`: Optional habit description (Text)
+- `created_at`: Habit creation timestamp (DateTime)
 
 ### Habit Logs Table
-- `id`: Primary key
-- `habit_id`: Foreign key to habits table
-- `date`: Date of the log entry
-- `completed`: Boolean completion status
+- `id`: Primary key (Integer)
+- `habit_id`: Foreign key to habits table (Integer)
+- `date`: Date of the log entry (Date)
+- `completed`: Boolean completion status (Boolean)
+- **Unique Constraint**: One log per habit per date
 
-## Customization
+## 🎨 Customization
 
-### Changing the Color Scheme
+### Color Scheme
+The app uses a carefully crafted dark theme with:
+- **Primary**: Indigo/Purple gradients (`#6366f1` to `#8b5cf6`)
+- **Background**: Dark slate (`#0f172a` to `#1e1b4b`)
+- **Cards**: Semi-transparent slate with glass effects
+- **Success**: Green (`#10b981`)
+- **Text**: Various slate shades for hierarchy
 
-Edit the CSS custom properties in `base.html`:
+### Modifying Styles
+All styles are embedded in HTML templates using Tailwind CSS classes. To customize:
+1. Edit the `<style>` sections in template files
+2. Modify Tailwind classes in HTML elements
+3. Add custom CSS variables for consistent theming
 
-```css
-:root {
-    --primary-color: #3b82f6;  /* Change primary color */
-    --success-color: #10b981;  /* Change success color */
-    --danger-color: #ef4444;   /* Change danger color */
-}
-```
+### Database Management
+- **Auto-creation**: Database is created automatically on first run
+- **Location**: `instance/habits.db` (SQLite file)
+- **Reset**: Delete the database file and restart the app
+- **Backup**: Copy the `habits.db` file to save your data
 
-### Modifying the Database
+## 🛣️ API Endpoints
 
-The database is automatically created on first run. To reset:
-
-1. Stop the application
-2. Delete the `instance/habits.db` file
-3. Run the application again
-
-## API Endpoints
-
+### Public Routes
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/` | Dashboard with all habits |
-| POST | `/add-habit` | Add a new habit |
-| POST | `/delete-habit/<id>` | Delete a habit |
-| POST | `/toggle-habit/<id>/<date>` | Toggle completion status |
+| GET | `/` | Landing page or redirect to dashboard if logged in |
+| GET | `/login` | User login form |
+| POST | `/login` | Process login credentials |
+| GET | `/register` | User registration form |
+| POST | `/register` | Create new user account |
+| GET | `/about` | About us page |
+| GET | `/mission` | Our mission page |
+| GET | `/team` | Team page |
+| GET | `/contact` | Contact information |
+| GET | `/privacy` | Privacy policy |
+| GET | `/terms` | Terms of service |
+
+### Protected Routes (Login Required)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/dashboard` | Main habit tracking dashboard |
+| POST | `/add-habit` | Create a new habit |
+| POST | `/delete-habit/<id>` | Delete a specific habit |
+| POST | `/toggle-habit/<id>/<date>` | Toggle habit completion for a date |
+| GET | `/logout` | Log out current user |
 
 ## Browser Support
 
