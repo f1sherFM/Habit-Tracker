@@ -15,7 +15,14 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 from authlib.integrations.flask_client import OAuth
 from datetime import datetime, timedelta, timezone
+from database_config import DatabaseConfig
+from password_security import PasswordValidator, SecurePasswordHasher, validate_and_hash_password
+from sql_security import InputValidator, SQLInjectionDetector, sql_injection_protection
 import os
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -23,11 +30,52 @@ app = Flask(__name__)
 # Configuration
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here-change-in-production')
 
-# Use in-memory database for Vercel (since file system is read-only)
-if os.getenv('VERCEL'):
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///habits.db'
+# Initialize database configuration
+db_config = DatabaseConfig()
+
+# Configure database with proper error handling
+try:
+    # Get database URI from DatabaseConfig
+    database_uri = db_config.get_database_uri()
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
+    
+    # Apply connection parameters for optimal performance
+    connection_params = db_config.get_connection_params()
+    
+    # Configure SQLAlchemy engine options
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': connection_params.get('pool_pre_ping', True),
+        'pool_recycle': connection_params.get('pool_recycle', 3600),
+        'pool_size': connection_params.get('pool_size', 10),
+        'max_overflow': connection_params.get('max_overflow', 20),
+        'pool_timeout': connection_params.get('pool_timeout', 30),
+        'connect_args': connection_params.get('connect_args', {})
+    }
+    
+    # Test connection and provide feedback
+    connection_success, connection_message = db_config.test_connection_with_feedback()
+    if connection_success:
+        print(f"✓ {connection_message}")
+    else:
+        print(f"⚠ Database connection warning: {connection_message}")
+        # For production environments, we should still try to continue
+        # as the connection might work when actually needed
+        
+except Exception as e:
+    error_message = db_config.get_error_message(e)
+    print(f"✗ Database configuration error: {error_message}")
+    
+    # Only fallback to SQLite in development environments
+    if not db_config.is_production():
+        print("Falling back to local SQLite database for development")
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///habits.db'
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+            'pool_pre_ping': True,
+            'connect_args': {'check_same_thread': False, 'timeout': 20}
+        }
+    else:
+        # In production, re-raise the error as we need a working database
+        raise RuntimeError(f"Failed to configure database in production: {error_message}")
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -86,10 +134,12 @@ class Habit(db.Model):
     __tablename__ = 'habits'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    is_archived = db.Column(db.Boolean, default=False)
     
     # Relationship to habit logs
     logs = db.relationship('HabitLog', backref='habit', lazy=True, cascade='all, delete-orphan')
@@ -136,12 +186,16 @@ class HabitLog(db.Model):
     __tablename__ = 'habit_logs'
     
     id = db.Column(db.Integer, primary_key=True)
-    habit_id = db.Column(db.Integer, db.ForeignKey('habits.id'), nullable=False)
-    date = db.Column(db.Date, nullable=False)
+    habit_id = db.Column(db.Integer, db.ForeignKey('habits.id'), nullable=False, index=True)
+    date = db.Column(db.Date, nullable=False, index=True)
     completed = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
-    # Ensure one log per habit per date
-    __table_args__ = (db.UniqueConstraint('habit_id', 'date', name='unique_habit_date'),)
+    # Ensure one log per habit per date and optimize foreign key relationships
+    __table_args__ = (
+        db.UniqueConstraint('habit_id', 'date', name='unique_habit_date'),
+        db.Index('idx_habit_date', 'habit_id', 'date'),
+    )
     
     def __repr__(self):
         return f'<HabitLog {self.habit_id} - {self.date}: {self.completed}>'
@@ -154,13 +208,15 @@ class User(UserMixin, db.Model):
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128))
-    google_id = db.Column(db.String(50), unique=True)
-    github_id = db.Column(db.String(50), unique=True)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.String(255))  # Increased length for better security
+    google_id = db.Column(db.String(50), unique=True, index=True)
+    github_id = db.Column(db.String(50), unique=True, index=True)
     name = db.Column(db.String(100))
-    avatar_url = db.Column(db.String(200))
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    avatar_url = db.Column(db.String(500))  # Increased length for URLs
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    is_active = db.Column(db.Boolean, default=True)
     
     # Relationship to habits
     habits = db.relationship('Habit', backref='user', lazy=True, cascade='all, delete-orphan')
@@ -169,10 +225,51 @@ class User(UserMixin, db.Model):
         return f'<User {self.username}>'
     
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        """
+        Set user password with enhanced security validation and hashing.
+        
+        Args:
+            password: The plain text password to set
+            
+        Raises:
+            ValueError: If password doesn't meet security requirements
+        """
+        # Validate password strength
+        is_valid, errors = PasswordValidator.validate_password_strength(password)
+        if not is_valid:
+            raise ValueError(f"Password security requirements not met: {'; '.join(errors)}")
+        
+        # Hash password with secure method
+        self.password_hash = SecurePasswordHasher.hash_password(password)
     
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        """
+        Check if provided password matches the stored hash.
+        Also checks if password hash needs updating to current security standards.
+        
+        Args:
+            password: The plain text password to verify
+            
+        Returns:
+            bool: True if password matches
+        """
+        if not self.password_hash:
+            return False
+        
+        # Verify password
+        is_valid = SecurePasswordHasher.verify_password(password, self.password_hash)
+        
+        # Check if hash needs updating (rehash with stronger parameters if needed)
+        if is_valid and SecurePasswordHasher.needs_rehash(self.password_hash):
+            try:
+                # Update to current security standards
+                self.password_hash = SecurePasswordHasher.hash_password(password)
+                # Note: The calling code should commit this change to the database
+            except Exception:
+                # If rehashing fails, continue with the valid login
+                pass
+        
+        return is_valid
     
     @staticmethod
     def get_or_create_from_google(google_user):
@@ -240,47 +337,75 @@ def dashboard():
 
 @app.route('/add-habit', methods=['POST'])
 @login_required
+@sql_injection_protection
 def add_habit():
     """
-    Add a new habit to the database
+    Add a new habit to the database with enhanced input validation
     """
     try:
         name = request.form.get('name', '').strip()
         description = request.form.get('description', '').strip()
         
-        # Validation
-        if not name:
-            flash('Habit name is required!', 'error')
+        # Enhanced input validation
+        is_valid_name, sanitized_name = InputValidator.validate_habit_name(name)
+        if not is_valid_name:
+            flash('Invalid habit name. Please enter a valid habit name without special characters.', 'error')
             return redirect(url_for('dashboard'))
         
-        if len(name) > 100:
-            flash('Habit name must be less than 100 characters!', 'error')
-            return redirect(url_for('dashboard'))
+        # Validate description
+        if description:
+            sanitized_description = InputValidator.sanitize_string(description, max_length=500)
+            # Check for SQL injection in description
+            is_suspicious, _ = SQLInjectionDetector.detect_sql_injection(description)
+            if is_suspicious:
+                flash('Invalid description. Please remove any special characters or SQL-like content.', 'error')
+                return redirect(url_for('dashboard'))
+        else:
+            sanitized_description = ""
         
-        # Create new habit
-        new_habit = Habit(user_id=current_user.id, name=name, description=description)
+        # Create new habit with sanitized input
+        new_habit = Habit(
+            user_id=current_user.id, 
+            name=sanitized_name, 
+            description=sanitized_description
+        )
         db.session.add(new_habit)
         db.session.commit()
         
-        flash(f'Habit "{name}" added successfully!', 'success')
+        flash(f'Habit "{sanitized_name}" added successfully!', 'success')
         
     except Exception as e:
         db.session.rollback()
-        flash(f'Error adding habit: {str(e)}', 'error')
+        flash('Error adding habit. Please try again.', 'error')
+        # Log the error for debugging but don't expose details to user
+        logger.error(f"Error adding habit for user {current_user.id}: {str(e)}")
     
     return redirect(url_for('dashboard'))
 
 
 @app.route('/delete-habit/<int:habit_id>', methods=['POST'])
 @login_required
+@sql_injection_protection
 def delete_habit(habit_id):
     """
-    Delete a habit and all its associated logs
+    Delete a habit and all its associated logs with enhanced validation
     """
     try:
-        habit = Habit.query.filter_by(id=habit_id, user_id=current_user.id).first_or_404()
+        # Validate habit_id
+        is_valid_id, validated_habit_id = InputValidator.validate_integer(habit_id, min_value=1)
+        if not is_valid_id:
+            flash('Invalid habit ID.', 'error')
+            return redirect(url_for('dashboard'))
+        
+        # Use ORM query (automatically parameterized) to find habit belonging to user
+        habit = Habit.query.filter_by(id=validated_habit_id, user_id=current_user.id).first()
+        if not habit:
+            flash('Habit not found.', 'error')
+            return redirect(url_for('dashboard'))
+        
         habit_name = habit.name
         
+        # Delete using ORM (automatically handles cascading deletes)
         db.session.delete(habit)
         db.session.commit()
         
@@ -288,35 +413,57 @@ def delete_habit(habit_id):
         
     except Exception as e:
         db.session.rollback()
-        flash(f'Error deleting habit: {str(e)}', 'error')
+        logger.error(f"Error deleting habit {habit_id} for user {current_user.id}: {str(e)}")
+        flash('Error deleting habit. Please try again.', 'error')
     
     return redirect(url_for('dashboard'))
 
 
 @app.route('/toggle-habit/<int:habit_id>/<date_str>', methods=['POST'])
 @login_required
+@sql_injection_protection
 def toggle_habit(habit_id, date_str):
     """
-    Toggle the completion status for a habit on a specific date
+    Toggle the completion status for a habit on a specific date with enhanced validation
     """
     try:
-        # Check if habit belongs to user
-        habit = Habit.query.filter_by(id=habit_id, user_id=current_user.id).first()
+        # Validate habit_id
+        is_valid_id, validated_habit_id = InputValidator.validate_integer(habit_id, min_value=1)
+        if not is_valid_id:
+            return jsonify({'success': False, 'error': 'Invalid habit ID'}), 400
+        
+        # Validate date_str format and check for injection
+        is_suspicious, _ = SQLInjectionDetector.detect_sql_injection(date_str)
+        if is_suspicious:
+            logger.warning(f"SQL injection attempt in date parameter from IP {request.remote_addr}")
+            return jsonify({'success': False, 'error': 'Invalid date format'}), 400
+        
+        # Check if habit belongs to user (using parameterized query via ORM)
+        habit = Habit.query.filter_by(id=validated_habit_id, user_id=current_user.id).first()
         if not habit:
             return jsonify({'success': False, 'error': 'Habit not found'}), 404
         
-        # Parse the date string (format: YYYY-MM-DD)
-        date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        # Parse the date string (format: YYYY-MM-DD) with additional validation
+        try:
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            
+            # Additional date validation - prevent dates too far in the future or past
+            today = datetime.now(timezone.utc).date()
+            if abs((date - today).days) > 365:  # Allow up to 1 year in past/future
+                return jsonify({'success': False, 'error': 'Date out of allowed range'}), 400
+                
+        except ValueError:
+            return jsonify({'success': False, 'error': 'Invalid date format'}), 400
         
-        # Find existing log or create new one
-        log = HabitLog.query.filter_by(habit_id=habit_id, date=date).first()
+        # Find existing log or create new one (using ORM - automatically parameterized)
+        log = HabitLog.query.filter_by(habit_id=validated_habit_id, date=date).first()
         
         if log:
             # Toggle existing log
             log.completed = not log.completed
         else:
             # Create new log with completed=True
-            log = HabitLog(habit_id=habit_id, date=date, completed=True)
+            log = HabitLog(habit_id=validated_habit_id, date=date, completed=True)
             db.session.add(log)
         
         db.session.commit()
@@ -328,16 +475,18 @@ def toggle_habit(habit_id, date_str):
         
     except Exception as e:
         db.session.rollback()
+        logger.error(f"Error toggling habit {habit_id} for user {current_user.id}: {str(e)}")
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': 'An error occurred while updating the habit'
         }), 500
 
 
 @app.route('/login', methods=['GET', 'POST'])
+@sql_injection_protection
 def login():
     """
-    Login page
+    Login page with enhanced security validation
     """
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
@@ -347,18 +496,31 @@ def login():
         password = request.form.get('password', '')
         remember = request.form.get('remember')
         
-        # Validation
-        if not email:
-            flash('Email is required.', 'error')
+        # Enhanced email validation
+        is_valid_email, sanitized_email = InputValidator.validate_email(email)
+        if not is_valid_email:
+            flash('Please enter a valid email address.', 'error')
             return render_template('login.html')
         
+        # Basic password validation (don't reveal if it's empty for security)
         if not password:
-            flash('Password is required.', 'error')
+            flash('Invalid email or password. Please check your credentials and try again.', 'error')
+            return render_template('login.html')
+        
+        # Check for SQL injection attempts in password
+        is_suspicious, _ = SQLInjectionDetector.detect_sql_injection(password)
+        if is_suspicious:
+            flash('Invalid email or password. Please check your credentials and try again.', 'error')
+            logger.warning(f"SQL injection attempt in login password from IP {request.remote_addr}")
             return render_template('login.html')
         
         try:
-            user = User.query.filter_by(email=email).first()
+            user = User.query.filter_by(email=sanitized_email).first()
             if user and user.check_password(password):
+                # If password hash was updated during check, save it
+                if db.session.is_modified(user):
+                    db.session.commit()
+                
                 login_user(user, remember=remember)
                 flash('Welcome back! Logged in successfully.', 'success')
                 next_page = request.args.get('next')
@@ -367,6 +529,7 @@ def login():
                 flash('Invalid email or password. Please check your credentials and try again.', 'error')
                 return render_template('login.html')
         except Exception as e:
+            logger.error(f"Login error for email {sanitized_email}: {str(e)}")
             flash('An error occurred during login. Please try again.', 'error')
             return render_template('login.html')
     
@@ -374,9 +537,10 @@ def login():
 
 
 @app.route('/register', methods=['GET', 'POST'])
+@sql_injection_protection
 def register():
     """
-    Register page
+    Register page with enhanced security validation
     """
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
@@ -386,37 +550,32 @@ def register():
         password = request.form.get('password', '')
         confirm_password = request.form.get('confirm_password', '')
         
-        # Validation
-        if not email:
-            flash('Email is required.', 'error')
+        # Enhanced email validation
+        is_valid_email, sanitized_email = InputValidator.validate_email(email)
+        if not is_valid_email:
+            flash('Please enter a valid email address.', 'error')
             return render_template('register.html')
         
+        # Enhanced password validation
         if not password:
             flash('Password is required.', 'error')
             return render_template('register.html')
         
-        if len(password) < 6:
-            flash('Password must be at least 6 characters long.', 'error')
+        # Use enhanced password validation
+        is_valid, validation_message, hashed_password = validate_and_hash_password(password, confirm_password)
+        if not is_valid:
+            flash(validation_message, 'error')
             return render_template('register.html')
         
-        if password != confirm_password:
-            flash('Passwords do not match.', 'error')
-            return render_template('register.html')
-        
-        # Check if email is valid format
-        import re
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        if not re.match(email_pattern, email):
-            flash('Please enter a valid email address.', 'error')
-            return render_template('register.html')
-        
-        if User.query.filter_by(email=email).first():
+        # Check if email already exists
+        if User.query.filter_by(email=sanitized_email).first():
             flash('Email already registered. Please use a different email or try logging in.', 'error')
             return render_template('register.html')
         
         try:
-            user = User(email=email)
-            user.set_password(password)
+            user = User(email=sanitized_email)
+            # Use the pre-validated and hashed password
+            user.password_hash = hashed_password
             db.session.add(user)
             db.session.commit()
             
@@ -426,6 +585,7 @@ def register():
             return redirect(url_for('dashboard'))
         except Exception as e:
             db.session.rollback()
+            logger.error(f"Registration error for email {sanitized_email}: {str(e)}")
             flash('An error occurred while creating your account. Please try again.', 'error')
             return render_template('register.html')
     
@@ -574,8 +734,8 @@ def create_tables():
 
 def init_db():
     """Initialize database tables"""
-    # Only create instance directory if not on Vercel (read-only filesystem)
-    if not os.getenv('VERCEL') and not os.path.exists('instance'):
+    # Create instance directory for local SQLite if needed and not in production
+    if not db_config.is_production() and not os.path.exists('instance'):
         try:
             os.makedirs('instance')
         except OSError:

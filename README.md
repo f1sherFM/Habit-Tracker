@@ -67,14 +67,16 @@ Track your daily habits with a beautiful and intuitive interface that helps you 
 - Python 3.8 or higher
 - pip (Python package installer)
 
-### Step 1: Clone the Project
+### Local Development Setup
+
+#### Step 1: Clone the Project
 
 ```bash
 git clone https://github.com/f1sherFM/Habit-Tracker.git
 cd Habit-Tracker
 ```
 
-### Step 2: Create Virtual Environment (Recommended)
+#### Step 2: Create Virtual Environment (Recommended)
 
 ```bash
 # On Windows
@@ -86,28 +88,33 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-### Step 3: Install Dependencies
+#### Step 3: Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 4: Configure Environment (Optional)
+#### Step 4: Configure Environment
 
-Create a `.env` file for custom configuration:
+Create a `.env` file for configuration:
 
 ```env
-SECRET_KEY=your_random_secret_key_here
-# OAuth credentials (currently disabled in UI)
+# Database Configuration (optional for local development)
+# DATABASE_URL=postgresql://postgres:password@host:port/database
+
+# OAuth credentials
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
+
+# Security
+SECRET_KEY=your_random_secret_key_here
 ```
 
-> **Note**: OAuth buttons are currently disabled in the UI. The app works perfectly with email/password authentication.
+> **Note**: For local development, the app will use SQLite by default. Set DATABASE_URL to use PostgreSQL.
 
-### Step 5: Run the Application
+#### Step 5: Run the Application
 
 ```bash
 python app.py
@@ -119,6 +126,26 @@ Open your web browser and navigate to:
 ```
 http://localhost:5000
 ```
+
+### Production Deployment
+
+For production deployment with persistent database:
+
+#### Database Setup
+1. **PostgreSQL Setup**: Follow [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) for Supabase PostgreSQL configuration
+2. **Environment Variables**: See [ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md) for complete configuration guide
+
+#### Platform-Specific Deployment
+- **Vercel**: Follow [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md) for Vercel deployment
+- **Other Platforms**: Use environment variable configuration from [ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md)
+
+#### Migration from SQLite
+If you have existing SQLite data:
+```bash
+python migrate.py
+```
+
+See migration documentation for detailed instructions.
 
 ## 📁 Project Structure
 
@@ -286,6 +313,8 @@ Give a ⭐️ if this project helped you!
 
 ## Troubleshooting
 
+For comprehensive troubleshooting, see [TROUBLESHOOTING.md](./TROUBLESHOOTING.md).
+
 ### Common Issues
 
 **Port Already in Use**
@@ -296,7 +325,7 @@ app.run(debug=True, port=5001)  # Use different port
 
 **Database Issues**
 ```bash
-# Delete and recreate database
+# Delete and recreate database (local SQLite only)
 rm instance/habits.db
 python app.py
 ```
@@ -306,6 +335,17 @@ python app.py
 # Reinstall requirements
 pip install -r requirements.txt --force-reinstall
 ```
+
+**Environment Variable Issues**
+```bash
+# Check if variables are loaded
+python -c "import os; print('DATABASE_URL:', bool(os.getenv('DATABASE_URL')))"
+```
+
+For deployment-specific issues, see:
+- [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md) - Vercel deployment troubleshooting
+- [ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md) - Environment variable configuration
+- [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) - Comprehensive troubleshooting guide
 
 ## Support
 

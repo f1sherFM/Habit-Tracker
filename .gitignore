@@ -53,3 +53,6 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+
+# Hypothesis testing cache
+.hypothesis/
