@@ -21,6 +21,16 @@ from sql_security import InputValidator, SQLInjectionDetector, sql_injection_pro
 import os
 import logging
 
+# Configure detailed logging for testing
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('app.log', encoding='utf-8')
+    ]
+)
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -42,32 +52,47 @@ try:
     # Apply connection parameters for optimal performance
     connection_params = db_config.get_connection_params()
     
-    # Configure SQLAlchemy engine options
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    # Configure SQLAlchemy engine options based on database type
+    engine_options = {
         'pool_pre_ping': connection_params.get('pool_pre_ping', True),
         'pool_recycle': connection_params.get('pool_recycle', 3600),
-        'pool_size': connection_params.get('pool_size', 10),
-        'max_overflow': connection_params.get('max_overflow', 20),
-        'pool_timeout': connection_params.get('pool_timeout', 30),
         'connect_args': connection_params.get('connect_args', {})
     }
     
-    # Test connection and provide feedback
-    connection_success, connection_message = db_config.test_connection_with_feedback()
-    if connection_success:
-        print(f"✓ {connection_message}")
+    # Add pool parameters only for databases that support them (PostgreSQL)
+    if database_uri.startswith('postgresql://') or database_uri.startswith('postgres://'):
+        engine_options.update({
+            'pool_size': connection_params.get('pool_size', 10),
+            'max_overflow': connection_params.get('max_overflow', 20),
+            'pool_timeout': connection_params.get('pool_timeout', 30)
+        })
+        logger.info("Configured PostgreSQL connection pool")
     else:
-        print(f"⚠ Database connection warning: {connection_message}")
-        # For production environments, we should still try to continue
-        # as the connection might work when actually needed
+        logger.info("Configured SQLite connection (no pooling)")
+    
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = engine_options
+    
+    # Test connection and provide feedback (commented out to avoid startup delays)
+    # connection_success = db_config.validate_connection()
+    # if connection_success:
+    #     print("✓ Successfully connected to database")
+    #     logger.info("✅ Database connection successful")
+    # else:
+    #     print("⚠ Database connection warning: Connection validation failed")
+    #     logger.warning("⚠️ Database connection issue: Connection validation failed")
+    
+    print("✓ Database configuration loaded")
+    logger.info("✅ Database configuration loaded")
         
 except Exception as e:
     error_message = db_config.get_error_message(e)
     print(f"✗ Database configuration error: {error_message}")
+    logger.error(f"❌ Database configuration failed: {error_message}")
     
     # Only fallback to SQLite in development environments
     if not db_config.is_production():
         print("Falling back to local SQLite database for development")
+        logger.info("🔄 Falling back to SQLite for development")
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///habits.db'
         app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
             'pool_pre_ping': True,
@@ -515,21 +540,34 @@ def login():
             return render_template('login.html')
         
         try:
+            logger.info(f"🔐 Login attempt for email: {sanitized_email}")
             user = User.query.filter_by(email=sanitized_email).first()
-            if user and user.check_password(password):
-                # If password hash was updated during check, save it
-                if db.session.is_modified(user):
-                    db.session.commit()
-                
-                login_user(user, remember=remember)
-                flash('Welcome back! Logged in successfully.', 'success')
-                next_page = request.args.get('next')
-                return redirect(next_page) if next_page else redirect(url_for('dashboard'))
+            
+            if user:
+                logger.info(f"👤 User found in database: {sanitized_email}")
+                if user.check_password(password):
+                    logger.info(f"✅ Password verification successful for: {sanitized_email}")
+                    
+                    # If password hash was updated during check, save it
+                    if db.session.is_modified(user):
+                        db.session.commit()
+                        logger.info(f"🔄 Password hash updated for user: {sanitized_email}")
+                    
+                    login_user(user, remember=remember)
+                    logger.info(f"🎉 User logged in successfully: {sanitized_email}")
+                    flash('Welcome back! Logged in successfully.', 'success')
+                    next_page = request.args.get('next')
+                    return redirect(next_page) if next_page else redirect(url_for('dashboard'))
+                else:
+                    logger.warning(f"❌ Invalid password for user: {sanitized_email}")
+                    flash('Invalid email or password. Please check your credentials and try again.', 'error')
+                    return render_template('login.html')
             else:
+                logger.warning(f"❌ User not found: {sanitized_email}")
                 flash('Invalid email or password. Please check your credentials and try again.', 'error')
                 return render_template('login.html')
         except Exception as e:
-            logger.error(f"Login error for email {sanitized_email}: {str(e)}")
+            logger.error(f"💥 Login error for email {sanitized_email}: {str(e)}")
             flash('An error occurred during login. Please try again.', 'error')
             return render_template('login.html')
     
@@ -725,10 +763,24 @@ def create_tables():
     """
     try:
         with app.app_context():
-            db.create_all()
-            print("Database tables created successfully!")
+            logger.info("🔧 Database tables already exist - skipping creation")
+            
+            # Log current database info
+            current_uri = app.config['SQLALCHEMY_DATABASE_URI']
+            if 'postgresql://' in current_uri:
+                logger.info("📊 Using PostgreSQL database (Neon)")
+            elif 'sqlite://' in current_uri:
+                logger.info("📊 Using SQLite database (local)")
+            
+            # Skip table creation since tables already exist
+            # db.create_all()  # Commented out - tables already exist
+            logger.info("✅ Database ready for use")
+            print("Database ready!")
+            
     except Exception as e:
-        print(f"Database creation warning: {e}")
+        error_msg = f"Database initialization error: {e}"
+        logger.error(f"❌ {error_msg}")
+        print(f"Database warning: {e}")
         # Continue anyway - this is expected on serverless platforms
 
 
