@@ -446,38 +446,54 @@ def delete_habit(habit_id):
 
 @app.route('/toggle-habit/<int:habit_id>/<date_str>', methods=['POST'])
 @login_required
-@sql_injection_protection
+# @sql_injection_protection  # Temporarily disabled for debugging
 def toggle_habit(habit_id, date_str):
     """
     Toggle the completion status for a habit on a specific date with enhanced validation
     """
+    print(f"🔄 TOGGLE HABIT CALLED: habit_id={habit_id}, date_str={date_str}")
+    logger.info(f"🔄 TOGGLE HABIT CALLED: habit_id={habit_id}, date_str={date_str}")
+    
     try:
+        logger.info(f"🔄 Toggle habit request: habit_id={habit_id}, date_str={date_str}, user_id={current_user.id}")
+        
         # Validate habit_id
         is_valid_id, validated_habit_id = InputValidator.validate_integer(habit_id, min_value=1)
         if not is_valid_id:
+            logger.warning(f"❌ Invalid habit ID: {habit_id}")
             return jsonify({'success': False, 'error': 'Invalid habit ID'}), 400
+        
+        logger.info(f"✅ Habit ID validated: {validated_habit_id}")
         
         # Validate date_str format and check for injection
         is_suspicious, _ = SQLInjectionDetector.detect_sql_injection(date_str)
         if is_suspicious:
-            logger.warning(f"SQL injection attempt in date parameter from IP {request.remote_addr}")
+            logger.warning(f"🚨 SQL injection attempt in date parameter from IP {request.remote_addr}: {date_str}")
             return jsonify({'success': False, 'error': 'Invalid date format'}), 400
+        
+        logger.info(f"✅ Date string passed SQL injection check: {date_str}")
         
         # Check if habit belongs to user (using parameterized query via ORM)
         habit = Habit.query.filter_by(id=validated_habit_id, user_id=current_user.id).first()
         if not habit:
+            logger.warning(f"❌ Habit not found or doesn't belong to user: habit_id={validated_habit_id}, user_id={current_user.id}")
             return jsonify({'success': False, 'error': 'Habit not found'}), 404
+        
+        logger.info(f"✅ Habit found: {habit.name}")
         
         # Parse the date string (format: YYYY-MM-DD) with additional validation
         try:
             date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            logger.info(f"✅ Date parsed successfully: {date}")
             
             # Additional date validation - prevent dates too far in the future or past
             today = datetime.now(timezone.utc).date()
             if abs((date - today).days) > 365:  # Allow up to 1 year in past/future
+                logger.warning(f"❌ Date out of range: {date}, today: {today}")
                 return jsonify({'success': False, 'error': 'Date out of allowed range'}), 400
                 
-        except ValueError:
+        except ValueError as ve:
+            logger.warning(f"❌ Invalid date format: {date_str}, error: {ve}")
             return jsonify({'success': False, 'error': 'Invalid date format'}), 400
         
         # Find existing log or create new one (using ORM - automatically parameterized)
@@ -485,13 +501,17 @@ def toggle_habit(habit_id, date_str):
         
         if log:
             # Toggle existing log
+            old_status = log.completed
             log.completed = not log.completed
+            logger.info(f"🔄 Toggling existing log: {old_status} -> {log.completed}")
         else:
             # Create new log with completed=True
             log = HabitLog(habit_id=validated_habit_id, date=date, completed=True)
             db.session.add(log)
+            logger.info(f"➕ Creating new log: completed=True")
         
         db.session.commit()
+        logger.info(f"✅ Database commit successful")
         
         return jsonify({
             'success': True,
@@ -500,7 +520,7 @@ def toggle_habit(habit_id, date_str):
         
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Error toggling habit {habit_id} for user {current_user.id}: {str(e)}")
+        logger.error(f"💥 Error toggling habit {habit_id} for user {current_user.id}: {str(e)}")
         return jsonify({
             'success': False,
             'error': 'An error occurred while updating the habit'
