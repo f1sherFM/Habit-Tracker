@@ -527,6 +527,39 @@ def toggle_habit(habit_id, date_str):
         }), 500
 
 
+@app.route('/debug/db-status')
+def debug_db_status():
+    """Debug endpoint to check database status"""
+    try:
+        # Get database info
+        db_config = DatabaseConfig()
+        database_uri = db_config.get_database_uri()
+        
+        # Test connection
+        connection_success = db_config.validate_connection()
+        
+        # Count users
+        user_count = User.query.count()
+        
+        # Get first user
+        first_user = User.query.first()
+        
+        return jsonify({
+            'database_uri': database_uri[:50] + '...' if len(database_uri) > 50 else database_uri,
+            'connection_success': connection_success,
+            'user_count': user_count,
+            'first_user_email': first_user.email if first_user else None,
+            'first_user_id': first_user.id if first_user else None,
+            'environment': 'production' if db_config.is_production() else 'development'
+        })
+    except Exception as e:
+        return jsonify({
+            'error': str(e),
+            'database_uri': 'Failed to get URI',
+            'connection_success': False
+        }), 500
+
+
 @app.route('/login', methods=['GET', 'POST'])
 @sql_injection_protection
 def login():
@@ -560,12 +593,16 @@ def login():
             return render_template('login.html')
         
         try:
+            print(f"🔐 VERCEL LOGIN: Attempting login for email: {sanitized_email}")
+            print(f"🔗 VERCEL LOGIN: Database URI: {app.config['SQLALCHEMY_DATABASE_URI'][:50]}...")
             logger.info(f"🔐 Login attempt for email: {sanitized_email}")
             user = User.query.filter_by(email=sanitized_email).first()
             
             if user:
+                print(f"👤 VERCEL LOGIN: User found in database: {sanitized_email}")
                 logger.info(f"👤 User found in database: {sanitized_email}")
                 if user.check_password(password):
+                    print(f"✅ VERCEL LOGIN: Password verification successful for: {sanitized_email}")
                     logger.info(f"✅ Password verification successful for: {sanitized_email}")
                     
                     # If password hash was updated during check, save it
@@ -574,15 +611,18 @@ def login():
                         logger.info(f"🔄 Password hash updated for user: {sanitized_email}")
                     
                     login_user(user, remember=remember)
+                    print(f"🎉 VERCEL LOGIN: User logged in successfully: {sanitized_email}")
                     logger.info(f"🎉 User logged in successfully: {sanitized_email}")
                     flash('Welcome back! Logged in successfully.', 'success')
                     next_page = request.args.get('next')
                     return redirect(next_page) if next_page else redirect(url_for('dashboard'))
                 else:
+                    print(f"❌ VERCEL LOGIN: Invalid password for user: {sanitized_email}")
                     logger.warning(f"❌ Invalid password for user: {sanitized_email}")
                     flash('Invalid email or password. Please check your credentials and try again.', 'error')
                     return render_template('login.html')
             else:
+                print(f"❌ VERCEL LOGIN: User not found: {sanitized_email}")
                 logger.warning(f"❌ User not found: {sanitized_email}")
                 flash('Invalid email or password. Please check your credentials and try again.', 'error')
                 return render_template('login.html')
