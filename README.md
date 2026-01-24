@@ -1,360 +1,512 @@
 # 🎯 HabitTracker
 
-> **A modern, dark-themed habit tracking web application built with Flask, SQLite, and Tailwind CSS.**
+> **A modern, scalable habit tracking web application built with Flask, featuring layered architecture, comprehensive validation, and property-based testing.**
 
-Track your daily habits with a beautiful and intuitive interface that helps you build consistency and achieve your goals.
+Track your daily habits with a beautiful interface, robust backend architecture, and enterprise-grade code quality that helps you build consistency and achieve your goals.
 
 ![Habit Tracker](https://img.shields.io/badge/Status-Active-brightgreen)
 ![Python](https://img.shields.io/badge/Python-3.8+-blue)
 ![Flask](https://img.shields.io/badge/Flask-2.0+-red)
+![Architecture](https://img.shields.io/badge/Architecture-Layered-purple)
+![Testing](https://img.shields.io/badge/Testing-Property--Based-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
 ## ✨ Features
 
+### 🏗️ **Enterprise Architecture**
+- **Layered Architecture**: Clean separation between controllers, services, and models
+- **Factory Pattern**: Environment-based application configuration
+- **Service Layer**: Business logic isolation with validation and authorization
+- **Comprehensive Validation**: Input validation with descriptive error messages
+- **CORS Support**: Configurable cross-origin resource sharing for modern frontends
+
+### 🧪 **Advanced Testing**
+- **Property-Based Testing**: 14 formal correctness properties using Hypothesis
+- **Unit Testing**: Comprehensive test coverage for all components
+- **Integration Testing**: Full workflow validation
+- **Security Testing**: Protection against common vulnerabilities
+
+### 📊 **Enhanced Habit Management**
+- **Extended Model**: Execution time, frequency, habit types (useful/pleasant)
+- **Business Rules**: Automatic validation of habit constraints
+- **Related Habits**: Link habits together for complex workflows
+- **Rewards System**: Configurable rewards for useful habits
+- **RESTful API**: Standard HTTP endpoints with proper status codes
+
 ### 🎨 **Beautiful Modern Interface**
 - **Dark Theme**: Professional slate/indigo color scheme with glass-morphism effects
 - **Responsive Design**: Perfect experience on mobile, tablet, and desktop
-- **Smooth Animations**: Floating elements and hover effects for engaging UX
-- **Landing Page**: Professional landing page with feature showcase
+- **Real-time Updates**: Smooth animations and instant feedback
+- **7-Day Progress Tracking**: Visual completion status with progress indicators
 
-### 📊 **Habit Management**
-- **Easy Habit Creation**: Add habits with name and optional description
-- **7-Day Progress Tracking**: Visual circles showing completion status for the last week
-- **Real-time Updates**: Click any day to toggle completion with smooth animations
-- **Progress Indicators**: Visual progress bars showing completion rates
-- **Habit Deletion**: Remove habits with confirmation
-
-### 🔐 **User Authentication**
-- **Email/Password Registration**: Secure account creation and login
-- **User Sessions**: Personalized experience with individual habit tracking
-- **Password Security**: Hashed passwords using Werkzeug security
-- **Session Management**: Secure login sessions with Flask-Login
-
-### 📱 **Complete Website Experience**
-- **Landing Page**: Beautiful hero section with feature highlights
-- **About Us**: Company information and values
-- **Our Mission**: Vision and purpose of the platform
-- **Team Page**: Meet the developer (Darklord)
-- **Contact Page**: Direct Telegram contact (@f1sherFM)
-- **Legal Pages**: Privacy Policy and Terms of Service
+### 🔐 **Security & Configuration**
+- **Environment-Based Config**: Secure configuration management
+- **OAuth Integration**: Google and GitHub social login
+- **Input Sanitization**: Protection against XSS and SQL injection
+- **Session Security**: Secure authentication with Flask-Login
 
 ## 🛠️ Technology Stack
 
-### Backend
-- **Flask** - Python web framework for routing and server logic
-- **SQLAlchemy** - ORM for database operations
-- **Flask-Login** - User session management
-- **SQLite** - Lightweight database for data storage
-- **Werkzeug** - Password hashing and security
+### Backend Architecture
+- **Flask** - Application factory pattern with blueprints
+- **SQLAlchemy** - ORM with migration support
+- **Service Layer** - Business logic with validation and authorization
+- **Validators** - Reusable validation components
+- **CORS** - Configurable cross-origin support
+
+### Testing Framework
+- **Hypothesis** - Property-based testing for correctness properties
+- **pytest** - Unit and integration testing
+- **Coverage** - Code coverage analysis (target: 90%+)
 
 ### Frontend
 - **HTML5** - Semantic markup structure
-- **Tailwind CSS** - Utility-first CSS framework via CDN
-- **JavaScript (Vanilla)** - Interactive functionality and AJAX
-- **Font Awesome** - Beautiful icons and graphics
-- **Google Fonts (Inter)** - Modern typography
+- **Tailwind CSS** - Utility-first CSS framework
+- **JavaScript** - Interactive functionality with API integration
+- **RESTful API** - Standard HTTP endpoints
 
-### Design
-- **Glass-morphism** - Modern frosted glass card effects
-- **Dark Theme** - Professional slate/indigo color palette
-- **Responsive Layout** - Mobile-first design approach
-- **CSS Animations** - Smooth transitions and hover effects
-
-## Installation
+## 🚀 Quick Start
 
 ### Prerequisites
 
 - Python 3.8 or higher
 - pip (Python package installer)
 
-### Local Development Setup
+### Installation
 
-#### Step 1: Clone the Project
+#### 1. Clone and Setup
 
 ```bash
 git clone https://github.com/f1sherFM/Habit-Tracker.git
 cd Habit-Tracker
-```
 
-#### Step 2: Create Virtual Environment (Recommended)
-
-```bash
-# On Windows
+# Create virtual environment
 python -m venv venv
+
+# Activate virtual environment
+# Windows:
 venv\Scripts\activate
-
-# On macOS/Linux
-python3 -m venv venv
+# macOS/Linux:
 source venv/bin/activate
-```
 
-#### Step 3: Install Dependencies
-
-```bash
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-#### Step 4: Configure Environment
-
-Create a `.env` file for configuration:
-
-```env
-# Database Configuration (optional for local development)
-# DATABASE_URL=postgresql://postgres:password@host:port/database
-
-# OAuth credentials
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
-
-# Security
-SECRET_KEY=your_random_secret_key_here
-```
-
-> **Note**: For local development, the app will use SQLite by default. Set DATABASE_URL to use PostgreSQL.
-
-#### Step 5: Run the Application
+#### 2. Configure Environment
 
 ```bash
-python app.py
+# Copy environment template
+cp .env.example .env
+
+# Edit .env file with your settings
+# Minimum required for development:
+SECRET_KEY=your-secret-key-here
+FLASK_ENV=development
+```
+
+#### 3. Run Application
+
+```bash
+# Quick start (recommended)
+python run.py
+
+# Or run directly
+python main.py
+
+# Or use Flask CLI
+flask run
 ```
 
 The application will start on `http://localhost:5000`
 
-Open your web browser and navigate to:
-```
-http://localhost:5000
-```
+### Environment Configuration
 
-### Production Deployment
+The application supports three environments with different configurations:
 
-For production deployment with persistent database:
-
-#### Database Setup
-1. **PostgreSQL Setup**: Follow [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) for Supabase PostgreSQL configuration
-2. **Environment Variables**: See [ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md) for complete configuration guide
-
-#### Platform-Specific Deployment
-- **Vercel**: Follow [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md) for Vercel deployment
-- **Other Platforms**: Use environment variable configuration from [ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md)
-
-#### Migration from SQLite
-If you have existing SQLite data:
+#### Development (Default)
 ```bash
-python migrate.py
+FLASK_ENV=development
+DATABASE_URL=sqlite:///dev.db  # Optional, defaults to SQLite
+DEBUG=true  # Automatically set
 ```
 
-See migration documentation for detailed instructions.
+#### Testing
+```bash
+FLASK_ENV=testing
+# Uses in-memory SQLite database
+# Disables CSRF protection for testing
+```
 
-## 📁 Project Structure
+#### Production
+```bash
+FLASK_ENV=production
+SECRET_KEY=your-secure-secret-key  # Required
+DATABASE_URL=postgresql://...      # Required
+CORS_ORIGINS=https://yourdomain.com  # Recommended
+```
+
+## 📁 Project Architecture
 
 ```
 Habit-Tracker/
-│
-├── app.py                 # Main Flask application with all routes
-├── requirements.txt       # Python dependencies
-├── README.md             # Project documentation
-├── .gitignore           # Git ignore rules
-├── .env                 # Environment variables (create manually)
-│
-└── templates/           # HTML templates
-    ├── landing.html     # Beautiful landing page
-    ├── login.html       # User login form
-    ├── register.html    # User registration form
-    ├── index.html       # Main habit dashboard
-    ├── about.html       # About us page
-    ├── mission.html     # Our mission page
-    ├── team.html        # Team page (featuring Darklord)
-    ├── contact.html     # Contact page (@f1sherFM)
-    ├── privacy.html     # Privacy policy
-    └── terms.html       # Terms of service
+├── app/                          # Application package
+│   ├── __init__.py              # Application factory
+│   ├── config.py                # Environment-based configuration
+│   ├── models/                  # Data models
+│   │   ├── habit.py            # Enhanced habit model
+│   │   ├── user.py             # User model
+│   │   └── habit_types.py      # Habit type enums
+│   ├── services/               # Business logic layer
+│   │   ├── habit_service.py    # Habit management service
+│   │   └── user_service.py     # User management service
+│   ├── validators/             # Validation layer
+│   │   ├── habit_validator.py  # Habit validation rules
+│   │   ├── time_validator.py   # Time constraint validation
+│   │   └── frequency_validator.py # Frequency validation
+│   ├── api/                    # RESTful API endpoints
+│   │   ├── habits.py          # Habit API routes
+│   │   └── users.py           # User API routes
+│   ├── utils/                  # Utility modules
+│   │   └── cors_config.py     # CORS configuration
+│   └── error_handlers.py       # Global error handling
+├── tests/                      # Test suite
+│   ├── unit/                  # Unit tests
+│   ├── integration/           # Integration tests
+│   ├── property/              # Property-based tests
+│   └── security/              # Security tests
+├── migrations/                 # Database migrations
+├── templates/                  # HTML templates
+├── main.py                    # Application entry point
+├── run.py                     # Quick start script
+├── .env.example              # Environment template
+└── requirements.txt          # Dependencies
 ```
 
-## 🚀 Usage Guide
+## 🧪 Testing
 
-### Getting Started
-1. **Visit the Landing Page** - Beautiful introduction to HabitTracker
-2. **Create Account** - Register with email and password
-3. **Login** - Access your personal dashboard
-4. **Start Tracking** - Add your first habit and begin your journey
+The application includes comprehensive testing with property-based testing for formal correctness verification.
 
-### Managing Habits
-- **➕ Add New Habit**: Click "Add Habit" button, enter name and optional description
-- **📊 Track Progress**: Click on any day circle to mark habit as complete/incomplete
-- **📈 View Statistics**: See completion rates and 7-day progress for each habit
-- **🗑️ Delete Habit**: Click trash icon to remove habits you no longer need
+### Run All Tests
 
-### Visual Indicators
-- **🟢 Green Circles**: Completed days
-- **⚪ Gray Circles**: Incomplete days
-- **📊 Progress Bar**: Shows completion percentage for the week
-- **🎯 Streak Counter**: Track your consistency over time
+```bash
+# Run complete test suite
+pytest
 
-### Navigation
-- **🏠 Dashboard**: Your main habit tracking interface
-- **ℹ️ About**: Learn about HabitTracker's mission and values
-- **👥 Team**: Meet the developer behind the project
-- **📞 Contact**: Get in touch via Telegram (@f1sherFM)
+# Run with coverage
+pytest --cov=app --cov-report=html
 
-## 🗄️ Database Schema
+# Run specific test types
+pytest tests/unit/          # Unit tests
+pytest tests/integration/   # Integration tests
+pytest tests/property/      # Property-based tests
+pytest tests/security/      # Security tests
+```
 
-### Users Table
-- `id`: Primary key (Integer)
-- `email`: User email address (Unique, String 120)
-- `password_hash`: Hashed password (String 128)
-- `name`: User display name (String 100)
-- `created_at`: Account creation timestamp (DateTime)
+### Property-Based Testing
 
-### Habits Table
-- `id`: Primary key (Integer)
-- `user_id`: Foreign key to users table (Integer)
-- `name`: Habit name (String 100, required)
-- `description`: Optional habit description (Text)
-- `created_at`: Habit creation timestamp (DateTime)
+The application includes 14 formal correctness properties:
 
-### Habit Logs Table
-- `id`: Primary key (Integer)
-- `habit_id`: Foreign key to habits table (Integer)
-- `date`: Date of the log entry (Date)
-- `completed`: Boolean completion status (Boolean)
-- **Unique Constraint**: One log per habit per date
+1. **Business Logic Delegation** - Controllers delegate to services
+2. **Validator Usage** - Data validation through dedicated validators
+3. **Habit Validation** - Complex habit constraint validation
+4. **Error Messages** - Descriptive validation error messages
+5. **Validation Format** - Standard validation result format
+6. **Configuration Loading** - Environment variable configuration
+7. **CORS Headers** - Proper CORS header handling
+8. **Service Validation** - Pre-creation validation in services
+9. **Authorization Checks** - User permission validation
+10. **Cascade Deletion** - Related record cleanup
+11. **Default Values** - Automatic default value assignment
+12. **HTTP Status Codes** - Standard API response codes
+13. **Data Migration** - Safe database migration
+14. **Error Descriptions** - Specific error descriptions
 
-## 🎨 Customization
+### Test Coverage Goals
 
-### Color Scheme
-The app uses a carefully crafted dark theme with:
-- **Primary**: Indigo/Purple gradients (`#6366f1` to `#8b5cf6`)
-- **Background**: Dark slate (`#0f172a` to `#1e1b4b`)
-- **Cards**: Semi-transparent slate with glass effects
-- **Success**: Green (`#10b981`)
-- **Text**: Various slate shades for hierarchy
+- **Minimum Coverage**: 90%
+- **Critical Paths**: 100%
+- **Property Tests**: All 14 properties covered
+- **Security Tests**: All major vulnerabilities tested
 
-### Modifying Styles
-All styles are embedded in HTML templates using Tailwind CSS classes. To customize:
-1. Edit the `<style>` sections in template files
-2. Modify Tailwind classes in HTML elements
-3. Add custom CSS variables for consistent theming
+## 🔧 API Documentation
 
-### Database Management
-- **Auto-creation**: Database is created automatically on first run
-- **Location**: `instance/habits.db` (SQLite file)
-- **Reset**: Delete the database file and restart the app
-- **Backup**: Copy the `habits.db` file to save your dat
+### Habit Management API
 
-## 🛣️ API Endpoints
+#### Get Habits
+```http
+GET /api/habits
+Authorization: Required (session-based)
 
-### Public Routes
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | Landing page or redirect to dashboard if logged in |
-| GET | `/login` | User login form |
-| POST | `/login` | Process login credentials |
-| GET | `/register` | User registration form |
-| POST | `/register` | Create new user account |
-| GET | `/about` | About us page |
-| GET | `/mission` | Our mission page |
-| GET | `/team` | Team page |
-| GET | `/contact` | Contact information |
-| GET | `/privacy` | Privacy policy |
-| GET | `/terms` | Terms of service |
+Query Parameters:
+- include_archived: boolean (default: false)
+- type: string (useful|pleasant)
+- page: integer (default: 1)
+- per_page: integer (default: 20, max: 100)
 
-### Protected Routes (Login Required)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/dashboard` | Main habit tracking dashboard |
-| POST | `/add-habit` | Create a new habit |
-| POST | `/delete-habit/<id>` | Delete a specific habit |
-| POST | `/toggle-habit/<id>/<date>` | Toggle habit completion for a date |
-| GET | `/logout` | Log out current user |
+Response: 200 OK
+{
+  "habits": [...],
+  "total": 10,
+  "page": 1,
+  "per_page": 20
+}
+```
 
-## Browser Support
+#### Create Habit
+```http
+POST /api/habits
+Content-Type: application/json
+Authorization: Required
 
-- Chrome 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
+Body:
+{
+  "name": "Morning Exercise",
+  "description": "30 minutes of cardio",
+  "execution_time": 1800,
+  "frequency": 1,
+  "habit_type": "useful",
+  "reward": "Healthy breakfast"
+}
 
-## Performance Features
+Response: 201 Created
+{
+  "habit": {
+    "id": 1,
+    "name": "Morning Exercise",
+    ...
+  }
+}
+```
 
-- **Lazy Loading**: Habits are loaded efficiently
-- **Minimal Dependencies**: Only essential packages
-- **Optimized Images**: Compressed assets
-- **Fast Database Queries**: Indexed database schema
+#### Update Habit
+```http
+PUT /api/habits/{id}
+Content-Type: application/json
+Authorization: Required
 
-## Security Features
+Response: 200 OK (updated habit)
+```
 
-- CSRF protection via Flask's secret key
-- Input validation and sanitization
-- SQL injection prevention via SQLAlchemy
-- XSS protection through proper templating
+#### Delete Habit
+```http
+DELETE /api/habits/{id}
+Authorization: Required
+
+Response: 204 No Content
+```
+
+### Error Responses
+
+All API endpoints return standardized error responses:
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Habit data validation failed",
+    "details": [
+      {
+        "field": "execution_time",
+        "message": "Execution time cannot exceed 120 seconds"
+      }
+    ]
+  },
+  "timestamp": "2024-01-15T08:00:00Z",
+  "path": "/api/habits"
+}
+```
+
+## 🔒 Security Features
+
+### Input Validation
+- **SQL Injection Protection**: Parameterized queries via SQLAlchemy ORM
+- **XSS Prevention**: Input sanitization and output escaping
+- **CSRF Protection**: Flask-WTF CSRF tokens
+- **Input Length Limits**: Configurable maximum input lengths
+
+### Authentication & Authorization
+- **Session Management**: Secure session handling with Flask-Login
+- **Password Security**: Bcrypt hashing with configurable rounds
+- **OAuth Integration**: Google and GitHub social login
+- **Permission Checks**: User-level authorization for all operations
+
+### Configuration Security
+- **Environment Variables**: Sensitive data in environment variables
+- **Secret Key Validation**: Required secure secret keys in production
+- **CORS Configuration**: Configurable allowed origins and methods
+- **Security Headers**: X-Content-Type-Options, X-Frame-Options, X-XSS-Protection
+
+## 🚀 Deployment
+
+### Environment Setup
+
+1. **Copy environment template**:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Configure required variables**:
+   ```bash
+   # Required for production
+   SECRET_KEY=your-secure-random-key
+   DATABASE_URL=postgresql://user:pass@host:port/db
+   FLASK_ENV=production
+   
+   # Optional but recommended
+   CORS_ORIGINS=https://yourdomain.com
+   ```
+
+3. **Database migration**:
+   ```bash
+   # Run database migrations
+   flask db upgrade
+   ```
+
+### Platform-Specific Deployment
+
+#### Vercel
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel --prod
+```
+
+#### Heroku
+```bash
+# Create Heroku app
+heroku create your-app-name
+
+# Set environment variables
+heroku config:set SECRET_KEY=your-secret-key
+heroku config:set DATABASE_URL=postgresql://...
+
+# Deploy
+git push heroku main
+```
+
+#### Docker
+```dockerfile
+FROM python:3.9-slim
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY . .
+EXPOSE 5000
+
+CMD ["python", "main.py"]
+```
+
+## 🛠️ Development
+
+### Adding New Features
+
+1. **Models**: Add/modify models in `app/models/`
+2. **Services**: Implement business logic in `app/services/`
+3. **Validators**: Add validation rules in `app/validators/`
+4. **API**: Create endpoints in `app/api/`
+5. **Tests**: Add tests in appropriate `tests/` subdirectories
+
+### Code Quality Standards
+
+- **Type Hints**: Use type annotations for all functions
+- **Docstrings**: Document all classes and methods
+- **Error Handling**: Proper exception handling with custom exceptions
+- **Logging**: Structured logging for debugging and monitoring
+- **Testing**: Write tests for all new functionality
+
+### Database Migrations
+
+```bash
+# Create migration
+flask db migrate -m "Description of changes"
+
+# Apply migration
+flask db upgrade
+
+# Rollback migration
+flask db downgrade
+```
+
+## 📊 Monitoring and Logging
+
+### Application Logging
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+logger.info("Application started")
+logger.error("Error occurred", exc_info=True)
+```
+
+### Performance Monitoring
+- **Request Logging**: Optional request/response logging
+- **Error Tracking**: Structured error logging
+- **Database Queries**: SQLAlchemy query logging in debug mode
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Write tests for your changes
+4. Ensure all tests pass (`pytest`)
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+### Development Guidelines
+
+- Follow PEP 8 style guidelines
+- Write comprehensive tests (unit + property-based)
+- Update documentation for new features
+- Ensure 90%+ test coverage
+- Add type hints for all functions
+
+## 📄 License
+
+This project is open source and available under the MIT License.
 
 ## 👨‍💻 Developer
 
 **Main Developer**: Darklord  
 **Contact**: [@f1sherFM](https://t.me/f1sherFM) (Telegram)
 
-## 🤝 Contributing
+## 🆘 Support
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Commit your changes (`git commit -m 'Add some amazing feature'`)
-5. Push to the branch (`git push origin feature/amazing-feature`)
-6. Open a Pull Request
+For issues and questions:
 
-## 📄 License
-
-This project is open source and available under the MIT License.
-
-## ⭐ Show your support
-
-Give a ⭐️ if this project helped you!
-
-## Troubleshooting
-
-For comprehensive troubleshooting, see [TROUBLESHOOTING.md](./TROUBLESHOOTING.md).
+1. **Check Documentation**: Review this README and related docs
+2. **Run Tests**: Ensure your environment is set up correctly
+3. **Check Logs**: Review application logs for error details
+4. **Environment**: Verify environment variables are set correctly
+5. **Dependencies**: Ensure all requirements are installed
 
 ### Common Issues
 
-**Port Already in Use**
+**Import Errors**
 ```bash
-# Change the port in app.py
-app.run(debug=True, port=5001)  # Use different port
+# Ensure you're in the virtual environment
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+pip install -r requirements.txt
 ```
 
 **Database Issues**
 ```bash
-# Delete and recreate database (local SQLite only)
-rm instance/habits.db
-python app.py
+# Reset database (development only)
+rm -f *.db
+python main.py
 ```
 
-**Missing Dependencies**
+**Configuration Issues**
 ```bash
-# Reinstall requirements
-pip install -r requirements.txt --force-reinstall
+# Verify environment variables
+python -c "from app.config import get_config; print(get_config('development'))"
 ```
-
-**Environment Variable Issues**
-```bash
-# Check if variables are loaded
-python -c "import os; print('DATABASE_URL:', bool(os.getenv('DATABASE_URL')))"
-```
-
-For deployment-specific issues, see:
-- [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md) - Vercel deployment troubleshooting
-- [ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md) - Environment variable configuration
-- [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) - Comprehensive troubleshooting guide
-
-## Support
-
-For issues and questions:
-1. Check the troubleshooting section
-2. Review the code comments
-3. Check browser console for errors
-4. Verify Python and dependencies versions
 
 ---
 
-**Happy Habit Tracking!** 🎯
+**Happy Habit Tracking with Enterprise-Grade Architecture!** 🎯

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Habit Tracker - Quick Start Script
-Run this script to start the Habit Tracker application
+Run this script to start the Habit Tracker application using the factory pattern
 """
 
 import sys
@@ -26,16 +26,29 @@ def install_requirements():
         sys.exit(1)
 
 def run_application():
-    """Run the Flask application"""
+    """Run the Flask application using factory pattern"""
     print("\n🚀 Starting Habit Tracker application...")
     print("📱 Open your browser and go to: http://localhost:5000")
     print("🛑 Press Ctrl+C to stop the server\n")
     
     try:
-        # Import and run the app
-        import app
-        app.create_tables()
-        app.app.run(debug=True, host='0.0.0.0', port=5000)
+        # Set environment variables
+        os.environ.setdefault('FLASK_ENV', 'development')
+        
+        # Import and run the app using factory pattern
+        from app import create_app
+        
+        app = create_app()
+        
+        # Create database tables
+        with app.app_context():
+            from app import db
+            db.create_all()
+            print("✅ Database tables created/verified")
+        
+        # Run the application
+        app.run(debug=True, host='0.0.0.0', port=5000)
+        
     except KeyboardInterrupt:
         print("\n👋 Application stopped. Goodbye!")
     except Exception as e:

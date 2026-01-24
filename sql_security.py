@@ -135,8 +135,14 @@ class SQLInjectionDetector:
                     threats[f"query.{key}"] = patterns
         
         # Check JSON data if present
-        if request.is_json and request.json:
-            cls._check_json_recursively(request.json, threats, "json")
+        if request.is_json:
+            try:
+                json_data = request.get_json(silent=True)
+                if json_data:
+                    cls._check_json_recursively(json_data, threats, "json")
+            except Exception:
+                # Ignore JSON parsing errors - they will be handled by the route
+                pass
         
         return len(threats) > 0, threats
     
