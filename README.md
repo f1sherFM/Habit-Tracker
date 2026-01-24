@@ -11,6 +11,62 @@ Track your daily habits with a beautiful interface, robust backend architecture,
 ![Testing](https://img.shields.io/badge/Testing-Property--Based-orange)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
+## 🚀 Latest Updates (January 2026)
+
+### ✅ **Critical Bug Fixes**
+- **Fixed JSON Parsing Errors**: Resolved "Failed to decode JSON object" errors in toggle-habit endpoint
+- **Enhanced Error Handling**: Improved JSON parsing with proper exception handling and silent mode
+- **SQL Security**: Fixed potential issues in SQL injection detection with safer JSON parsing
+
+### 🏗️ **Architecture Enhancements**
+- **Flask Factory Pattern**: Complete refactor to application factory pattern for better testing and configuration
+- **Modular Structure**: Organized code into blueprints, services, models, and validators
+- **Enhanced Database Support**: Better handling for both SQLite (development) and PostgreSQL (production)
+
+### 🧪 **Testing Infrastructure**
+- **Comprehensive Test Suite**: Added unit, integration, and property-based tests
+- **Security Testing**: SQL injection protection validation
+- **Performance Testing**: Database and API performance benchmarks
+
+### 🔧 **Developer Experience**
+- **Easy Setup**: Added `create_local_user.py` for quick test user creation
+- **Better Logging**: Enhanced debugging and monitoring capabilities
+- **Migration System**: Database schema migration support
+
+## ⚡ Quick Start
+
+### 1. Clone and Setup
+```bash
+git clone https://github.com/f1sherFM/Habit-Tracker.git
+cd Habit-Tracker
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### 2. Create Test User
+```bash
+# Create a test user for immediate login
+python create_local_user.py
+```
+
+### 3. Run Application
+```bash
+# Start the development server
+python app.py
+```
+
+### 4. Access Application
+- **URL**: http://127.0.0.1:5000
+- **Login**: test@example.com
+- **Password**: TestPassword!2024
+
+🎉 **You're ready to start tracking habits!**
+
 ## ✨ Features
 
 ### 🏗️ **Enterprise Architecture**
