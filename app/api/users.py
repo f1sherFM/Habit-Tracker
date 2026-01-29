@@ -47,6 +47,7 @@ def get_current_user():
                 'email': current_user.email,
                 'name': current_user.name,
                 'avatar_url': current_user.avatar_url,
+                'default_tracking_days': current_user.default_tracking_days or 7,
                 'created_at': current_user.created_at.isoformat() if current_user.created_at else None,
                 'updated_at': current_user.updated_at.isoformat() if current_user.updated_at else None,
                 'is_active': current_user.is_active,
@@ -82,7 +83,8 @@ def update_current_user():
     Expected JSON payload:
     {
         "name": "Updated name",
-        "avatar_url": "https://example.com/avatar.jpg"
+        "avatar_url": "https://example.com/avatar.jpg",
+        "default_tracking_days": 14
     }
     
     Returns:
@@ -108,6 +110,17 @@ def update_current_user():
                 }
             }), 400
         
+        # Validate default_tracking_days if provided
+        if 'default_tracking_days' in user_data:
+            tracking_days = user_data.get('default_tracking_days')
+            if not isinstance(tracking_days, int) or tracking_days < 1 or tracking_days > 30:
+                return jsonify({
+                    'error': {
+                        'code': 'VALIDATION_ERROR',
+                        'message': 'default_tracking_days must be an integer between 1 and 30'
+                    }
+                }), 400
+        
         # Update user using service layer
         user_service = get_user_service()
         updated_user = user_service.update_user(current_user.id, user_data)
@@ -118,6 +131,7 @@ def update_current_user():
                 'email': updated_user.email,
                 'name': updated_user.name,
                 'avatar_url': updated_user.avatar_url,
+                'default_tracking_days': updated_user.default_tracking_days or 7,
                 'updated_at': updated_user.updated_at.isoformat() if updated_user.updated_at else None
             }
         }), 200

@@ -35,6 +35,9 @@ def create_user_model(database):
                               onupdate=lambda: datetime.now(timezone.utc))
         is_active = db.Column(db.Boolean, default=True)
         
+        # Advanced features fields
+        default_tracking_days = db.Column(db.Integer, default=7)  # Период отслеживания по умолчанию
+        
         # Relationship to habits
         habits = db.relationship('Habit', backref='user', lazy=True, cascade='all, delete-orphan')
         

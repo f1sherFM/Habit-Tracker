@@ -41,7 +41,16 @@ logger = logging.getLogger(__name__)
 @login_required
 def get_habits():
     """
-    Get all habits for the current user
+    Get all habits for the current user with optional filtering
+    
+    Query parameters:
+        include_archived: Include archived habits (default: false)
+        type: Filter by habit type ('useful' or 'pleasant')
+        category_id: Filter by category ID
+        tag_ids: Filter by tag IDs (comma-separated)
+        tracking_days: Number of days for tracking (1-30, default: 7)
+        page: Page number (default: 1)
+        per_page: Items per page (default: 20, max: 100)
     
     Returns:
         JSON response with habits list and metadata
@@ -50,15 +59,49 @@ def get_habits():
         # Get query parameters
         include_archived = request.args.get('include_archived', 'false').lower() == 'true'
         habit_type = request.args.get('type')
+        category_id = request.args.get('category_id', type=int)
+        tag_ids_str = request.args.get('tag_ids', '')
+        tracking_days = int(request.args.get('tracking_days', 7))
         page = int(request.args.get('page', 1))
         per_page = min(int(request.args.get('per_page', 20)), 100)  # Max 100 per page
         
+        # Validate tracking_days
+        if tracking_days < 1 or tracking_days > 30:
+            return jsonify({
+                'error': {
+                    'code': 'VALIDATION_ERROR',
+                    'message': 'tracking_days must be between 1 and 30'
+                }
+            }), 400
+        
+        # Parse tag_ids
+        tag_ids = []
+        if tag_ids_str:
+            try:
+                tag_ids = [int(tag_id) for tag_id in tag_ids_str.split(',')]
+            except ValueError:
+                return jsonify({
+                    'error': {
+                        'code': 'VALIDATION_ERROR',
+                        'message': 'tag_ids must be comma-separated integers'
+                    }
+                }), 400
+        
         # Get habits using service layer
         habit_service = get_habit_service()
+        habits = habit_service.get_user_habits(current_user.id, include_archived)
+        
+        # Apply type filter
         if habit_type:
-            habits = habit_service.get_habits_by_type(current_user.id, habit_type)
-        else:
-            habits = habit_service.get_user_habits(current_user.id, include_archived)
+            habits = [h for h in habits if h.habit_type and h.habit_type.value == habit_type]
+        
+        # Apply category filter
+        if category_id:
+            habits = [h for h in habits if h.category_id == category_id]
+        
+        # Apply tag filters (AND logic - habit must have all specified tags)
+        if tag_ids:
+            habits = [h for h in habits if all(any(tag.id == tag_id for tag in h.tags) for tag_id in tag_ids)]
         
         # Apply pagination
         start_idx = (page - 1) * per_page
@@ -77,6 +120,8 @@ def get_habits():
                 'habit_type': habit.habit_type.value if habit.habit_type else None,
                 'reward': habit.reward,
                 'related_habit_id': habit.related_habit_id,
+                'category_id': habit.category_id,
+                'tracking_days': habit.tracking_days or 7,
                 'created_at': habit.created_at.isoformat() if habit.created_at else None,
                 'updated_at': habit.updated_at.isoformat() if habit.updated_at else None,
                 'is_archived': habit.is_archived
@@ -88,6 +133,10 @@ def get_habits():
             if hasattr(habit, 'can_be_completed_today'):
                 habit_dict['can_complete_today'] = habit.can_be_completed_today()
             
+            # Add tags
+            if hasattr(habit, 'tags'):
+                habit_dict['tags'] = [{'id': tag.id, 'name': tag.name} for tag in habit.tags]
+            
             habits_data.append(habit_dict)
         
         return jsonify({
@@ -96,7 +145,8 @@ def get_habits():
             'page': page,
             'per_page': per_page,
             'has_next': end_idx < len(habits),
-            'has_prev': page > 1
+            'has_prev': page > 1,
+            'tracking_days': tracking_days
         }), 200
         
     except HabitServiceError as e:

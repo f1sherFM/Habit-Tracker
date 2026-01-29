@@ -157,9 +157,17 @@ def _register_blueprints(app):
     # Register API blueprints
     from .api.habits import habits_bp
     from .api.users import users_bp
+    from .api.categories import categories_bp
+    from .api.tags import tags_bp
+    from .api.comments import comments_bp
+    from .api.analytics import analytics_bp
     
     app.register_blueprint(habits_bp)
     app.register_blueprint(users_bp)
+    app.register_blueprint(categories_bp)
+    app.register_blueprint(tags_bp)
+    app.register_blueprint(comments_bp)
+    app.register_blueprint(analytics_bp)
     
     logger.info("API blueprints registered")
 

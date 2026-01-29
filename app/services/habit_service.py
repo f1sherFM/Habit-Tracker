@@ -38,7 +38,10 @@ class HabitService:
         """
         self.habit_validator = habit_validator or HabitValidator()
         # Get models after initialization
-        self.User, self.Habit, self.HabitLog = get_models()
+        models = get_models()
+        self.User = models[0]
+        self.Habit = models[1]
+        self.HabitLog = models[2]
         
         # Import db from models
         from ..models.habit import db

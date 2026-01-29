@@ -56,3 +56,5 @@ logs/
 
 # Hypothesis testing cache
 .hypothesis/
+
+.kiro

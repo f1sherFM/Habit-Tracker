@@ -34,6 +34,10 @@ def create_habit_model(database):
         reward = db.Column(db.String(200), nullable=True)                   # Reward for useful habits
         related_habit_id = db.Column(db.Integer, db.ForeignKey('habits.id'), nullable=True)
         
+        # Advanced features fields
+        category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True, index=True)
+        tracking_days = db.Column(db.Integer, default=7)  # 1-30 дней для отслеживания
+        
         # Metadata fields
         created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
         updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), 
